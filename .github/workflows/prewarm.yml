@@ -1,0 +1,26 @@
+name: Pre-warm sample cities
+
+# Runs once a day, shortly after the provider budgets reset at 00:00 UTC. It refreshes sample
+# cities whose caches are about to expire. It is not a keep-alive: the free host goes back to
+# sleep 15 minutes after the run ends.
+on:
+  schedule:
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prewarm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install httpx
+      - run: python backend/scripts/prewarm.py
+        env:
+          BACKEND_URL: ${{ vars.BACKEND_URL }}

@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy app
+      - name: Tests with coverage
+        run: pytest -m "not perf" --cov=app --cov-report=term --cov-fail-under=70
+      - name: Coverage gate for the analysis package
+        run: pytest -m "not perf" --cov=app/analysis --cov-report=term --cov-fail-under=80 -q
+      - name: Resource gates (memory, index load, analysis time)
+        run: pytest -m perf -s
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r backend/requirements-dev.txt
+      - name: Regenerate the OpenAPI snapshot and fail on any difference
+        working-directory: backend
+        run: |
+          python scripts/export_openapi.py
+          git diff --exit-code ../docs/openapi.json
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: http://api.test
+      - run: npm run check:bundle
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          CI: 'true'
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the backend image and check its size
+        run: |
+          docker build -t meridian-api backend
+          size=$(docker image inspect meridian-api --format '{{.Size}}')
+          echo "image size: $((size / 1000000)) MB"
+          test "$size" -lt 700000000

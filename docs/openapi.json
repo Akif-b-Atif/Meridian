@@ -1,0 +1,637 @@
+{
+  "components": {
+    "schemas": {
+      "Budget": {
+        "additionalProperties": false,
+        "properties": {
+          "freshCitiesLimit": {
+            "title": "Freshcitieslimit",
+            "type": "integer"
+          },
+          "freshCitiesToday": {
+            "title": "Freshcitiestoday",
+            "type": "integer"
+          },
+          "resetsAt": {
+            "title": "Resetsat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "freshCitiesToday",
+          "freshCitiesLimit",
+          "resetsAt"
+        ],
+        "title": "Budget",
+        "type": "object"
+      },
+      "Envelope": {
+        "additionalProperties": false,
+        "properties": {
+          "computedAt": {
+            "title": "Computedat",
+            "type": "string"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "module": {
+            "title": "Module",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "refreshing": {
+            "title": "Refreshing",
+            "type": "boolean"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "module",
+          "status",
+          "data",
+          "computedAt",
+          "stale",
+          "refreshing",
+          "notes",
+          "sources"
+        ],
+        "title": "Envelope",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Source": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "url"
+        ],
+        "title": "Source",
+        "type": "object"
+      },
+      "StatusBody": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/Budget"
+          },
+          "cacheMode": {
+            "enum": [
+              "redis",
+              "memory"
+            ],
+            "title": "Cachemode",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "warm": {
+            "title": "Warm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "warm",
+          "cacheMode",
+          "version",
+          "budget"
+        ],
+        "title": "StatusBody",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "City profiles computed from free public data. See the repository README.",
+    "title": "Meridian API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/cities/{geoname_id}": {
+      "get": {
+        "operationId": "city_api_cities__geoname_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "City"
+      }
+    },
+    "/api/cities/{geoname_id}/air": {
+      "get": {
+        "operationId": "air_route_api_cities__geoname_id__air_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Air Route"
+      }
+    },
+    "/api/cities/{geoname_id}/boundary": {
+      "get": {
+        "operationId": "boundary_route_api_cities__geoname_id__boundary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Boundary Route"
+      }
+    },
+    "/api/cities/{geoname_id}/climate": {
+      "get": {
+        "operationId": "climate_route_api_cities__geoname_id__climate_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Climate Route"
+      }
+    },
+    "/api/cities/{geoname_id}/history": {
+      "get": {
+        "operationId": "history_route_api_cities__geoname_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "History Route"
+      }
+    },
+    "/api/cities/{geoname_id}/places": {
+      "get": {
+        "operationId": "places_route_api_cities__geoname_id__places_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Places Route"
+      }
+    },
+    "/api/cities/{geoname_id}/seismic": {
+      "get": {
+        "operationId": "seismic_route_api_cities__geoname_id__seismic_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "radius",
+            "required": false,
+            "schema": {
+              "default": "300",
+              "title": "Radius",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Seismic Route"
+      }
+    },
+    "/api/cities/{geoname_id}/solar": {
+      "get": {
+        "operationId": "solar_route_api_cities__geoname_id__solar_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Solar Route"
+      }
+    },
+    "/api/cities/{geoname_id}/water": {
+      "get": {
+        "operationId": "water_route_api_cities__geoname_id__water_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "geoname_id",
+            "required": true,
+            "schema": {
+              "title": "Geoname Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Water Route"
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "search_api_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search"
+      }
+    },
+    "/api/status": {
+      "get": {
+        "operationId": "status_api_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusBody"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Status"
+      }
+    }
+  }
+}

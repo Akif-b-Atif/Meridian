@@ -1,0 +1,27 @@
+# Render blueprint for the backend. Secrets are entered in the dashboard, never committed.
+services:
+  - type: web
+    name: meridian-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /api/status
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: CONTACT_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://meridian-city-profile.pages.dev
+      - key: ALLOWED_ORIGIN_REGEX
+        value: https://[a-z0-9-]+[.]meridian-city-profile[.]pages[.]dev
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: OM_WEIGHT_MODEL
+        value: fractional
