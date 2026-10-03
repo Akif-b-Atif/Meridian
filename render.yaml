@@ -14,7 +14,7 @@ services:
       - key: APP_ENV
         value: production
       - key: CONTACT_URL
-        sync: false
+        value: https://github.com/Akif-b-Atif/Meridian
       - key: ALLOWED_ORIGINS
         value: https://meridian-city-profile.pages.dev
       - key: ALLOWED_ORIGIN_REGEX

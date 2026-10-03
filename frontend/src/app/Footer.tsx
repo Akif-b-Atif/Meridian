@@ -36,7 +36,7 @@ const ALL: Source[] = [
     url: 'https://www.naturalearthdata.com/',
   },
 ]
-const REPO = import.meta.env.VITE_REPO_URL || 'https://github.com/'
+const REPO = import.meta.env.VITE_REPO_URL || 'https://github.com/Akif-b-Atif/Meridian'
 
 export function Footer() {
   const qc = useQueryClient()

@@ -1,6 +1,7 @@
 # Contributing
 
-Thanks for taking a look. This is a portfolio project, but fixes and improvements are welcome.
+Thanks for taking a look. This is a portfolio project by Akif Bin Atif, but fixes and improvements
+are welcome.
 
 ## Set up
 

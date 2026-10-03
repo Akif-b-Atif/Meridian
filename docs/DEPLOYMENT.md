@@ -1,6 +1,7 @@
 # Deployment
 
-Meridian runs entirely on free tiers: Cloudflare Pages for the front end, Render for the backend
+Hosting is optional: the project runs fully on your own machine (see the README). If you do host it,
+it runs entirely on free tiers: Cloudflare Pages for the front end, Render for the backend
 and Upstash for the shared cache. None needs a payment method.
 
 ## 1. Upstash Redis
@@ -13,9 +14,9 @@ free host restarts.
 
 1. Create a **Blueprint** from this repository. `render.yaml` describes the service: Docker, free
    plan, health check `/api/status`.
-2. Enter the secrets in the dashboard: `CONTACT_URL` (the repository URL or a project email; every
-   provider request identifies itself with it), `UPSTASH_REDIS_REST_URL` and
-   `UPSTASH_REDIS_REST_TOKEN`.
+2. Enter the secrets in the dashboard: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
+   `CONTACT_URL` is preset in `render.yaml` to this repository's URL; every provider request
+   identifies itself with it.
 3. If the service name `meridian-api` is taken, append something unique and use the new URL below.
 
 Expect the first request after 15 idle minutes to take up to a minute while the service wakes and

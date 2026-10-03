@@ -150,6 +150,20 @@ cap.
 The API sends numbers and codes, never sentences, so the unit switch can change every value
 without a refetch. Sentences are written once, in `src/copy`.
 
+## Abuse and identification
+
+No provider needs an API key; they tell callers apart by IP address and by the User-Agent, which
+carries `CONTACT_URL`. A clone run locally uses its own IP's allowance. A public deployment is
+different: providers see only the server's address and my contact, so the deployment protects
+itself with a per-IP limit (120 requests a minute), a limit of 5 new cities per IP per hour, and
+daily caps that stay below every provider's own limit. Abuse can use up the day's new-city
+allowance, but it cannot push the service past a provider's limits.
+
+One thing is **not verified**: the per-IP limiter reads the client address from `X-Forwarded-For`
+(Uvicorn runs with `--forwarded-allow-ips='*'`). If the host's proxy does not overwrite that
+header, a caller could vary it to dodge the per-IP limits. The daily caps still hold. Before
+hosting publicly, check what the host's proxy sends and restrict the trusted proxies accordingly.
+
 ## Known deviations and simplifications
 
 I would rather list these than have a reader find them:

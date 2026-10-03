@@ -8,6 +8,8 @@ import httpx
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEFAULT_CONTACT = "https://github.com/Akif-b-Atif/Meridian"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=False)
@@ -81,7 +83,8 @@ class Settings(BaseSettings):
 
     @property
     def user_agent(self) -> str:
-        return f"Meridian/{self.app_version} ({self.contact_url}) python-httpx/{httpx.__version__}"
+        contact = self.contact_url or DEFAULT_CONTACT
+        return f"Meridian/{self.app_version} ({contact}) python-httpx/{httpx.__version__}"
 
     def validate_production(self) -> None:
         if self.app_env != "production":

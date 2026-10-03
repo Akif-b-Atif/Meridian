@@ -242,3 +242,17 @@ async def test_swr_obsolete_climate() -> None:
     code, body = await runner.get(spec, "k", 1)
     assert code == 200 and body["stale"] is True and body["refreshing"] is True
     await asyncio.wait_for(started.wait(), 1)
+
+
+def test_user_agent_identifies_the_project_even_without_contact() -> None:
+    ua = Settings().user_agent
+    assert "github.com/Akif-b-Atif/Meridian" in ua and "None" not in ua
+    assert "me@example.org" in Settings(contact_url="me@example.org").user_agent
+
+
+def test_production_requires_contact() -> None:
+    import pytest as _pytest
+
+    with _pytest.raises(RuntimeError):
+        Settings(app_env="production").validate_production()
+    Settings(app_env="production", contact_url="https://example.org").validate_production()

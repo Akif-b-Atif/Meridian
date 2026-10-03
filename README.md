@@ -5,16 +5,28 @@
 Meridian profiles a city's seasons, how far peak heat lags behind the solstice, how much it has
 warmed since 1950, where earthquakes have struck, how far the sea is, what is mapped there and how
 the place began. Every number is calculated on the server from open sources, and every section
-says how its numbers were made and what they cannot tell you.
+says how its numbers were made and what it cannot tell you.
 
-I built it as a portfolio project to show three things in one piece of work: integrating many
-unreliable public APIs responsibly, doing honest statistics on the data they return, and
-designing an interface that is quiet, precise and accessible rather than a stock dashboard.
+**Live demo:** not hosted at the moment. It runs locally in a few minutes (see
+[Run it on your machine](#run-it-on-your-machine-windows)), and [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+describes how I would host it on free tiers.
 
-**Live demo:** _add your Cloudflare Pages URL here after deploying (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md))_
-
-> The backend runs on a free host that sleeps when idle. The first request after a quiet spell
+> When hosted on a free tier, the backend sleeps when idle. The first request after a quiet spell
 > can take up to a minute, and the page says so while it waits.
+
+## Why I built this
+
+I am a geography nerd, and the part of it I like most is big data about places: the kind of
+numbers that make a city's character visible, like why the hottest day of the year lands weeks
+after the solstice, or how a coastline, a fault line or a river shapes a place. I also like finding
+ways to show that data so it is clear at a glance and still rewards a closer look.
+
+This project is where those two interests met, and it doubled as a self-directed way to learn
+by building something real. I wanted to work with live public APIs as they actually behave
+(rate limits, weighted costs, inconsistent coverage, terms of use), do honest statistics on what
+comes back, and design the result by hand rather than from a template. Most of the interesting
+decisions in the repo come from those constraints, and they are written up in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the [decision records](docs/adr).
 
 ## What a report contains
 
@@ -97,8 +109,8 @@ they call the virtual environment's Python directly.
 **1. Get the code**
 
 ```
-git clone https://github.com/YOUR-USERNAME/meridian.git
-cd meridian
+git clone https://github.com/Akif-b-Atif/Meridian.git
+cd Meridian
 ```
 
 **2. Start the backend** (terminal one)
@@ -159,7 +171,7 @@ Every limit and base URL is an environment variable with a safe default; see
 
 | Variable | Purpose |
 | --- | --- |
-| `CONTACT_URL` | URL or email sent in every provider request. Required in production. |
+| `CONTACT_URL` | URL or email sent in every provider request. Defaults to this repository's URL in development. Required in production. |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Shared cache. Without them the cache is memory-only. |
 | `OM_WEIGHT_MODEL` | `fractional` or `floored`; decided by `backend/scripts/calibrate_open_meteo.py` |
 | `FRESH_CITY_DAILY_LIMIT` | New cities computed per UTC day (default 15) |
@@ -198,6 +210,11 @@ More detail is in [docs/METHODS.md](docs/METHODS.md).
 - [Verification checklist](docs/VERIFICATION.md)
 - [Architecture decision records](docs/adr)
 - [Data sources and licences](DATA_SOURCES.md)
+
+## Author
+
+Built by [Akif Bin Atif](https://github.com/Akif-b-Atif). Questions and suggestions are welcome as
+[issues](https://github.com/Akif-b-Atif/Meridian/issues).
 
 ## Licence
 
