@@ -5,6 +5,7 @@ import type { BoundaryData, PlacesData, SeismicData, WaterData } from '../api/ty
 import { compass } from '../copy'
 import { dist, n1, type Units } from '../units'
 import { quakeRadius } from '../charts/Seismic'
+import { prefersReducedMotion } from '../lib/hooks'
 import { mapStyle } from './style'
 
 export interface MapProps {
@@ -280,12 +281,13 @@ export default function MapView(p: MapProps) {
     const m = mapRef.current
     if (!m || !p.boundary) return
     const [w, s, e, n] = p.boundary.bbox
+    // The map opens as a globe and flies in to the city once the boundary is known.
     m.fitBounds(
       [
         [w, s],
         [e, n],
       ],
-      { padding: 32, maxZoom: 13, duration: 0 },
+      { padding: 32, maxZoom: 13, duration: prefersReducedMotion() ? 0 : 3200, essential: false },
     )
   }, [p.boundary, ready])
 
@@ -316,7 +318,7 @@ export default function MapView(p: MapProps) {
   return (
     <div
       ref={el}
-      style={{ height: 'var(--map-h, 420px)' }}
+      style={{ height: 'clamp(340px, 62vh, 560px)' }}
       className="map-box"
       tabIndex={0}
       aria-label="Map"

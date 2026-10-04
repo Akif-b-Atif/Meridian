@@ -61,30 +61,32 @@ describe('city report (jsdom)', () => {
     mockFetch()
     renderCity()
     expect(await screen.findByRole('heading', { name: 'London', level: 1 })).toBeInTheDocument()
-    await screen.findByText(/Cfb: Temperate oceanic/)
+    await screen.findAllByText(/Climate type/)
     for (const t of [
-      'Location',
-      'Seasons',
-      'Climate normals',
-      'Warming',
-      'Extremes',
+      'Where it is',
+      'How it began',
+      'What’s there',
+      'The year',
+      'Typical weather',
       'Daylight',
+      'Extremes',
+      'Warming',
       'Earthquakes',
-      'Air quality',
-      'Water',
-      'Places',
-      'History',
+      'Air',
     ]) {
       expect(screen.getByRole('heading', { name: t, level: 2 })).toBeInTheDocument()
     }
     await screen.findByText(/London is the capital/)
     expect(screen.getByRole('slider')).toHaveAttribute('aria-valuemax', '365')
-    expect(screen.getByText(/No earthquakes of magnitude 4.5 or more/)).toBeInTheDocument()
+    expect(screen.getAllByText(/No earthquakes of magnitude 4.5 or more/).length).toBeGreaterThan(0)
     expect(
-      screen.getByText(
+      screen.getAllByText(
         /The warmest day of a typical year is Jul 19, 28 days after the June solstice/,
-      ),
-    ).toBeInTheDocument()
+      ).length,
+    ).toBeGreaterThan(0)
+    // each chapter explains itself in plain language
+    expect(screen.getAllByText('What this shows').length).toBeGreaterThanOrEqual(5)
+    expect(screen.getAllByText('How to read this').length).toBeGreaterThanOrEqual(4)
   })
 
   it('an error in one module leaves the others intact', async () => {
@@ -126,12 +128,13 @@ describe('city report (jsdom)', () => {
   it('converts displayed units when switched', async () => {
     mockFetch()
     renderCity()
-    await screen.findByText(/Cfb: Temperate oceanic/)
-    await screen.findByText(/Inland/, {}, { timeout: 5000 })
+    await screen.findAllByText(/Climate type/)
+    await screen.findByText(/is inland/, {}, { timeout: 5000 })
     expect(
       (await screen.findAllByText(hasText('72 km'), {}, { timeout: 5000 })).length,
     ).toBeGreaterThan(0)
-    screen.getByRole('button', { name: '°F mi' }).click()
+    screen.getByRole('button', { name: 'Display' }).click()
+    ;(await screen.findByRole('button', { name: '°F, mi' })).click()
     await waitFor(() => expect(screen.getAllByText(hasText('45 mi')).length).toBeGreaterThan(0), {
       timeout: 3000,
     })

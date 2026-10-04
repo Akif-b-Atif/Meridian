@@ -12,3 +12,4 @@ Short records of the decisions that shaped Meridian, each with the alternatives 
 | [0006](0006-numbers-not-sentences.md) | The API sends numbers; the browser writes the words |
 | [0007](0007-no-keep-alive.md) | No keep-alive ping for the sleeping host |
 | [0008](0008-svg-charts-without-a-kit.md) | Hand-built SVG charts and no component kit |
+| [0009](0009-chapters-and-real-pixel-charts.md) | Ten chapters, computed takeaways and charts drawn in real pixels |

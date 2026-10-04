@@ -15,8 +15,15 @@ These run in CI on every push and none of them calls a real provider.
 | API | The whole API driven against a mocked provider network: search filtering, validation, identity, the full climate pipeline (two archive requests with the right parameters, cached on the second call), seismic, boundary, places, history, air, a provider 429 blocking further calls, one failing provider leaving others intact, and the per-IP limiter |
 | Contract | The generated OpenAPI schema equals `docs/openapi.json` |
 | Resources | Peak memory under 380 MB, water index load under 10 s, climate analysis under 15 s (`pytest -m perf`, Linux) |
-| Front end | Unit conversion for every row, sentence templates, slug rules, API response classification, polling schedule, theme script, preferences with failing storage, search debounce and keyboard use, and a full-page render of all eleven sections |
+| Front end | Geometry (distance, bearing, solar hour), every takeaway sentence against fixture data, glossary popovers, the Plain/Detailed fold, the chapter rail, and a full-page render of all ten chapters, plus unit conversion for every row, sentence templates, slug rules, API response classification, polling schedule, theme script, preferences with failing storage, search debounce and keyboard use, and a full-page render of all eleven sections |
 | Browser | Playwright with a mocked API: search and disambiguation, all sections, 202 polling, error states, waking sequence, radius switch requesting only seismic, unit switch and persistence, clock keyboard use, theme before first paint, reduced motion, WebGL fallback, and axe-core in both themes |
+
+## Visual review still to do
+
+The layout, the scroll-driven dial, the radar and the globe fly-in have been exercised in jsdom
+and by the Playwright suite but have not been looked at by a person in a browser. Before launch,
+check by eye: chapter spacing at 360, 768 and 1280 px; the sticky dial on a phone while scrolling the
+year chapter; the radar time-lapse; the map's globe-to-city flight; and both themes.
 
 ## Live checks still to run
 

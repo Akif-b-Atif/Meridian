@@ -12,4 +12,4 @@ code touches the DOM. Every chart has a focusable group, a live readout and a da
 
 ## Consequences
 More code than a charting library, but full control over contrast, direct labelling, keyboard
-behaviour and the unit switch, and the landing bundle stays under 100 KB gzipped.
+behaviour and the unit switch, and the landing bundle stays around 100 KB gzipped.

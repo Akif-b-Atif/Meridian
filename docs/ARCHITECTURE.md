@@ -142,13 +142,15 @@ cap.
 | `src/api/` | Fetch client, response classification, polling hook, waking logic |
 | `src/copy/` | Every visible sentence, built from numbers so unit changes need no new data |
 | `src/units/` | All metric/imperial conversion, in the browser only |
-| `src/charts/` | SVG chart components. d3 computes geometry; React renders |
-| `src/map/` | MapLibre wrapper and the custom style over OpenFreeMap tiles |
-| `src/routes/` | Landing page and the city report |
-| `src/state/` | Units and theme preferences (stored in `localStorage` only) |
+| `src/charts/` | Chart components. They draw in real pixels; d3 computes geometry, React renders SVG, the radar uses canvas |
+| `src/components/` | Chapter shell, takeaway and how-to blocks, rail, glossary popovers, the scroll-driven year story |
+| `src/lib/` | Geometry and solar helpers, and hooks for measuring width, visibility and the active chapter |
+| `src/map/` | MapLibre wrapper (globe projection, fly-in) and the custom style over OpenFreeMap tiles |
+| `src/routes/` | Landing page and the city report (ten chapters) |
+| `src/state/` | Units, theme and reading mode (stored in `localStorage` only) |
 
 The API sends numbers and codes, never sentences, so the unit switch can change every value
-without a refetch. Sentences are written once, in `src/copy`.
+without a refetch. Sentences are written once, in `src/copy` (the "What this shows" lines are in `copy/takeaways.ts`).
 
 ## Abuse and identification
 

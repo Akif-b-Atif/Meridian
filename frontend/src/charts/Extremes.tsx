@@ -3,59 +3,172 @@ import type { ClimateData } from '../api/types'
 import { DataTable } from '../components/Section'
 import { useChartFocus } from '../components/useChartFocus'
 import { IDLE_READOUT } from '../copy'
+import { extremesPairs, pairSentence, type Pair } from '../copy/takeaways'
+import { useWidth } from '../lib/hooks'
 import { n1, thresholdLabel, type Units } from '../units'
 
-interface MiniProps {
+/** Before and after: for each measure, the average of the earlier half of the period (open dot)
+ *  against the later half (filled dot). The line between them is the change. */
+export function Dumbbells({
+  pairs,
+  firstLabel,
+  lastLabel,
+  label,
+}: {
+  pairs: Pair[]
+  firstLabel: string
+  lastLabel: string
+  label: string
+}) {
+  const [ref, w] = useWidth<HTMLDivElement>(640)
+  const narrow = w < 560
+  const rowH = 70
+  const H = pairs.length * rowH + 40
+  const left = 16
+  const right = w - 16
+  return (
+    <div ref={ref} className="chart-host">
+      <div className="legend">
+        <span className="k">
+          <svg width="16" height="16" aria-hidden="true">
+            <circle
+              cx="8"
+              cy="8"
+              r="6"
+              fill="var(--ground)"
+              stroke="var(--series-a)"
+              strokeWidth="2.5"
+            />
+          </svg>
+          {firstLabel}
+        </span>
+        <span className="k">
+          <svg width="16" height="16" aria-hidden="true">
+            <circle cx="8" cy="8" r="7" fill="var(--series-a)" />
+          </svg>
+          {lastLabel}
+        </span>
+      </div>
+      <svg
+        width={w}
+        height={H}
+        viewBox={`0 0 ${w} ${H}`}
+        className="chart"
+        role="img"
+        aria-label={label}
+      >
+        {pairs.map((p, i) => {
+          const max = Math.max(p.earlier, p.later, 1) * 1.25
+          const x = scaleLinear()
+            .domain([0, max])
+            .range([left, right - (narrow ? 0 : 150)])
+          const top = i * rowH + 8
+          const cy = top + 40
+          const a = x(p.earlier)
+          const b = x(p.later)
+          return (
+            <g key={p.label}>
+              <text x={left} y={top + 14} className="strong lg">
+                {p.label}
+              </text>
+              <line
+                x1={left}
+                x2={right - (narrow ? 0 : 150)}
+                y1={cy}
+                y2={cy}
+                stroke="var(--edge)"
+                strokeOpacity={0.35}
+              />
+              <line x1={a} x2={b} y1={cy} y2={cy} stroke="var(--series-a)" strokeWidth={4} />
+              <circle
+                cx={a}
+                cy={cy}
+                r={8}
+                fill="var(--ground)"
+                stroke="var(--series-a)"
+                strokeWidth={2.5}
+              />
+              <circle cx={b} cy={cy} r={9} fill="var(--series-a)" />
+              <text x={a} y={cy - 14} textAnchor={b >= a ? 'end' : 'start'} className="ink">
+                {n1(p.earlier)}
+              </text>
+              <text x={b} y={cy - 14} textAnchor={b >= a ? 'start' : 'end'} className="strong">
+                {n1(p.later)}
+              </text>
+              {!narrow && (
+                <text x={right} y={cy + 5} textAnchor="end" className="ink">
+                  {pairSentence(p)}
+                </text>
+              )}
+              {narrow && (
+                <text x={left} y={cy + 28}>
+                  {p.unit}: {pairSentence(p)}
+                </text>
+              )}
+            </g>
+          )
+        })}
+      </svg>
+      <DataTable
+        caption="Earlier half against later half"
+        head={['Measure', firstLabel, lastLabel]}
+        rows={pairs.map((p) => [p.label, n1(p.earlier), n1(p.later)])}
+      />
+    </div>
+  )
+}
+
+export function Mini({
+  title,
+  years,
+  values,
+  color,
+}: {
   title: string
   years: number[]
   values: (number | null)[]
   color: string
-  means: { label: string; value: number }[]
-}
-
-function Mini({ title, years, values, color, means }: MiniProps) {
-  const W = 340,
-    H = 180,
-    M = { l: 44, r: 8, t: 12, b: 28 }
+}) {
+  const [ref, w] = useWidth<HTMLDivElement>(320)
+  const H = 170
+  const M = { l: 40, r: 8, t: 8, b: 28 }
   const { index, setIndex, onKeyDown } = useChartFocus(years.length)
-  const allZero = values.every((v) => v === 0 || v === null)
+  const allZero = values.every((v) => !v)
   const x = scaleBand<number>()
     .domain(years.map((_, i) => i))
-    .range([M.l, W - M.r])
+    .range([M.l, w - M.r])
     .padding(0.15)
   const y = scaleLinear()
     .domain([0, Math.max(1, ...values.map((v) => v ?? 0))])
     .nice()
     .range([H - M.b, M.t])
-  const readout =
-    index === null
-      ? IDLE_READOUT
-      : `${years[index]}: ${values[index] === null ? 'no data' : values[index]}`
   return (
-    <figure style={{ margin: 0 }}>
-      <h3 style={{ fontSize: 16 }}>{title}</h3>
+    <figure ref={ref} style={{ margin: 0 }}>
+      <h3 style={{ fontSize: 17 }}>{title}</h3>
       {allZero ? (
-        <p className="note" style={{ minHeight: H }}>
+        <p className="note" style={{ minHeight: 60 }}>
           None in this period.
         </p>
       ) : (
         <svg
-          viewBox={`0 0 ${W} ${H}`}
+          width={w}
+          height={H}
+          viewBox={`0 0 ${w} ${H}`}
           className="chart chart-focus"
           role="group"
           tabIndex={0}
           aria-label={`${title} by year`}
           onKeyDown={onKeyDown}
         >
-          {y.ticks(4).map((t) => (
+          {y.ticks(3).map((t) => (
             <g key={t}>
               <line
                 x1={M.l}
-                x2={W - M.r}
+                x2={w - M.r}
                 y1={y(t)}
                 y2={y(t)}
                 stroke="var(--edge)"
-                strokeOpacity={0.35}
+                strokeOpacity={0.3}
               />
               <text x={M.l - 6} y={y(t) + 5} textAnchor="end">
                 {t}
@@ -85,18 +198,6 @@ function Mini({ title, years, values, color, means }: MiniProps) {
               />
             ),
           )}
-          {means.map((m, k) => (
-            <line
-              key={k}
-              x1={means.length === 2 ? (k === 0 ? M.l : (M.l + W - M.r) / 2) : M.l}
-              x2={means.length === 2 ? (k === 0 ? (M.l + W - M.r) / 2 : W - M.r) : W - M.r}
-              y1={y(m.value)}
-              y2={y(m.value)}
-              stroke="var(--ink)"
-              strokeWidth={1.5}
-              strokeDasharray="5 4"
-            />
-          ))}
           {[0, years.length - 1].map((i) => (
             <text
               key={i}
@@ -111,93 +212,70 @@ function Mini({ title, years, values, color, means }: MiniProps) {
       )}
       {!allZero && (
         <p className="readout" aria-live="polite">
-          {readout}
+          {index === null ? IDLE_READOUT : `${years[index]}: ${values[index] ?? 'no data'}`}
         </p>
       )}
     </figure>
   )
 }
 
-export function Extremes({ d, units }: { d: ClimateData; units: Units }) {
+export function YearByYear({ d, units }: { d: ClimateData; units: Units }) {
   const e = d.extremes
-  const hw = e.heatwave
-  const half = Math.min(15, Math.floor(e.years.length / 2))
-  const mean = (a: number[]) => a.reduce((s, v) => s + v, 0) / a.length
-  const hwEv = [
-    { label: 'first', value: mean(hw.events.slice(0, half)) },
-    { label: 'last', value: mean(hw.events.slice(-half)) },
-  ]
-  const hwDays = [
-    { label: 'first', value: mean(hw.days.slice(0, half)) },
-    { label: 'last', value: mean(hw.days.slice(-half)) },
-  ]
-  const hot30 = `Days at or above ${thresholdLabel(30, units)}`
-  const hot35 = `Days at or above ${thresholdLabel(35, units)}`
-  const frost = `Frost days (minimum below ${thresholdLabel(0, units)})`
   return (
     <div className="stack">
-      <div className="grid-2">
+      <div className="cols-2">
         <Mini
-          title={hot30}
+          title={`Days at or above ${thresholdLabel(30, units)}`}
           years={e.years}
           values={e.hot30}
           color="var(--series-a)"
-          means={[{ label: 'mean', value: e.means.hot30 }]}
         />
         <Mini
-          title={hot35}
+          title={`Days at or above ${thresholdLabel(35, units)}`}
           years={e.years}
           values={e.hot35}
           color="var(--series-a)"
-          means={[{ label: 'mean', value: e.means.hot35 }]}
         />
         <Mini
-          title={frost}
+          title={`Frost days (below ${thresholdLabel(0, units)})`}
           years={e.years}
           values={e.frost}
           color="var(--series-b)"
-          means={[{ label: 'mean', value: e.means.frost }]}
         />
         <Mini
-          title="Wet days (1 mm or more)"
+          title="Rainy days (1 mm or more)"
           years={e.years}
           values={e.wet}
           color="var(--series-b)"
-          means={[{ label: 'mean', value: e.means.wet }]}
         />
         <Mini
-          title="Heatwave events a year"
+          title="Heatwaves a year"
           years={e.years}
-          values={hw.events}
+          values={e.heatwave.events}
           color="var(--series-a)"
-          means={hwEv}
         />
         <Mini
           title="Heatwave days a year"
           years={e.years}
-          values={hw.days}
+          values={e.heatwave.days}
           color="var(--series-a)"
-          means={hwDays}
         />
       </div>
-      <p className="note">
-        A heatwave is at least 3 days in a row hotter than the 90th percentile of the same time of
-        year, {e.years[0]} to {e.years[e.years.length - 1]}.
-      </p>
       <DataTable
         caption="Extremes by year"
-        head={['Year', 'Hot 30', 'Hot 35', 'Frost', 'Wet', 'Heatwave events', 'Heatwave days']}
+        head={['Year', 'Hot', 'Very hot', 'Frost', 'Rainy', 'Heatwaves', 'Heatwave days']}
         rows={e.years.map((y, i) => [
           y,
           e.hot30[i] ?? '–',
           e.hot35[i] ?? '–',
           e.frost[i] ?? '–',
           e.wet[i] ?? '–',
-          hw.events[i],
-          hw.days[i],
+          e.heatwave.events[i],
+          e.heatwave.days[i],
         ])}
       />
-      <span className="sr-only">{n1(e.means.hot30)}</span>
     </div>
   )
 }
+
+export { extremesPairs }

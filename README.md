@@ -30,20 +30,28 @@ decisions in the repo come from those constraints, and they are written up in
 
 ## What a report contains
 
-| Section | What it shows | How it is computed |
+A report reads as ten short chapters, not a dashboard. Each opens with a plain question and a few
+headline numbers, shows one chart, and says in a sentence what that chart is telling you. Method
+notes sit in a "For the curious" fold, and a Plain/Detailed switch controls whether they are open.
+
+| Chapter | The question it answers | How it is computed |
 | --- | --- | --- |
-| **Year Clock** | A radial 365-day temperature curve, the daylight curve, the solstices and the lag between them, which you can scrub through | Daily ERA5 means, smoothed; daylight from the NOAA solar equations |
-| **Seasons** | Four meteorological seasons (hemisphere-aware) with their spread, or wet and dry seasons where temperature barely changes | Climatology over the last 30 full years |
-| **Seasonal lag** | Days between the solstice and the warmest and coldest day, with a 90% interval | Harmonic least-squares fit, a rolling-mean cross-check and a seeded 500-sample bootstrap |
-| **Climate normals** | Climograph, Köppen-Geiger class with the rule that produced it, continentality, rainfall seasonality | Peel et al. (2007) rules, Gorczynski and Walsh-Lawler indices |
-| **Warming** | Warming stripes and trend since 1950 with a confidence interval | Theil-Sen slope and Kendall tau, anomalies against 1961 to 1990 |
-| **Extremes** | Hot days, frost days, wet days and heatwaves, first half of the period against the second | Threshold counts and a percentile-based heatwave rule |
-| **Daylight** | Hours of daylight through the year, polar day and night | NOAA declination series |
-| **Earthquakes** | Rate, largest events, magnitude-frequency fit and indicative recurrence within 100, 300 or 500 km | USGS catalogue, exact Poisson interval, Aki-Utsu maximum-likelihood b-value |
-| **Air quality** | Current air quality and the last seven days | Open-Meteo air-quality model |
-| **Water** | Distance and bearing to the nearest coast, lake and major river | Natural Earth geometry, local azimuthal equidistant projection |
-| **Places** | Counts per category and a list of notable places | OpenStreetMap through Overpass, ranked with Wikipedia page views |
-| **History** | Founding date, country facts and a Wikipedia summary | Wikidata and Wikipedia |
+| **1. Where it is** | Where on Earth is this, and how far is the sea? | A map that opens as a globe and flies in; distance and bearing to coast, lake and river from Natural Earth geometry |
+| **2. How it began** | How old is this place? | Wikidata founding date on a timeline, country facts, Wikipedia summary |
+| **3. What's there** | What is on the ground? | OpenStreetMap counts through Overpass, with "one every N metres" spacing, and notable places ranked by Wikipedia page views |
+| **4. The year** | How does the year unfold, and when does the heat arrive? | A scroll-driven year dial: daily ERA5 means, NOAA daylight, and the solstice lag from a harmonic fit with a seeded 500-sample bootstrap |
+| **5. Typical weather** | What should I pack, month by month? | Climograph over 30 years of normals, and the Köppen-Geiger type (Peel et al. 2007) spelled out letter by letter |
+| **6. Daylight** | How much light, and how fast does it change? | NOAA declination series; a 24-hour bar for any date |
+| **7. Extremes** | Are hot and cold days changing? | Earlier half of the period against the later half; percentile-based heatwave rule |
+| **8. Warming** | Is it warming, and by how much? | Warming stripes and decade averages; Theil-Sen slope and Kendall tau, anomalies against 1961 to 1990 |
+| **9. Earthquakes** | How restless is the ground? | A radar of every quake at its true distance and direction with a time-lapse; exact Poisson interval, Aki-Utsu b-value |
+| **10. Air** | Is the air clean right now? | Open-Meteo air-quality model against the WHO 24-hour guideline |
+
+The page also has a few things I wanted for the sake of it: a progress line down the side that
+follows your scroll (the "meridian"), one shared date that links the dial, the climate chart, the
+seasons and the daylight curve, a live "right now" panel that works out from longitude whether the
+sun is up there, and glossary popovers for terms like *anomaly* and *magnitude*. Details are in
+[docs/DESIGN.md](docs/DESIGN.md).
 
 ## Why it is built the way it is
 
@@ -96,7 +104,8 @@ d3 scale/shape/array modules (React renders the SVG), MapLibre GL, TanStack Quer
 GitHub Actions.
 
 I did not use a component kit. The interface uses one typeface, seven colour tokens per theme,
-corner radii of at most 4 px, no gradients, no pill shapes and no decorative motion. Light and dark
+corner radii of at most 4 px, no gradients and no pill shapes; motion is there only where it
+explains something (the scroll-driven dial, the earthquake time-lapse, the map's fly-in). Light and dark
 themes are separately tuned, and both meet WCAG 2.2 AA contrast
 (see the table in [docs/DESIGN.md](docs/DESIGN.md)).
 

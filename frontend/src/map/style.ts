@@ -13,6 +13,7 @@ export function mapStyle(theme: 'light' | 'dark'): StyleSpecification {
   const t = TOKENS[theme]
   return {
     version: 8,
+    projection: { type: 'globe' },
     glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: { openmaptiles: { type: 'vector', url: 'https://tiles.openfreemap.org/planet' } },
     layers: [

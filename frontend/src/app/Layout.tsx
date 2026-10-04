@@ -1,16 +1,29 @@
 import { Link, Outlet } from 'react-router'
-import { useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { useRetryNetworkFailures } from '../api/hooks'
 import { useWaking } from '../api/waking'
+import { DisplayMenu } from '../components/DisplayMenu'
 import { SearchBox } from '../components/SearchBox'
-import { usePrefs } from '../state/preferences'
 import { Footer } from './Footer'
 
 export function Layout() {
-  const { units, setUnits, theme, cycleTheme } = usePrefs()
   const [waking, retry] = useWaking()
-  useQueryClient()
   useRetryNetworkFailures(waking.phase === 'ok')
+
+  // "/" jumps to the search box from anywhere on the page.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
+      if (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault()
+        document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
     <>
       <a href="#report" className="skip">
@@ -18,34 +31,13 @@ export function Layout() {
       </a>
       <header className="site-header">
         <div className="wrap">
-          <Link
-            to="/"
-            style={{ fontWeight: 600, fontSize: 20, color: 'var(--ink)', textDecoration: 'none' }}
-          >
+          <Link to="/" className="brand">
             Meridian
           </Link>
-          <div style={{ flex: 1, maxWidth: 420 }}>
+          <div style={{ flex: 1, maxWidth: 440 }}>
             <SearchBox />
           </div>
-          <div role="group" aria-label="Units" style={{ display: 'flex', gap: 4 }}>
-            <button
-              type="button"
-              aria-pressed={units === 'metric'}
-              onClick={() => setUnits('metric')}
-            >
-              °C km
-            </button>
-            <button
-              type="button"
-              aria-pressed={units === 'imperial'}
-              onClick={() => setUnits('imperial')}
-            >
-              °F mi
-            </button>
-          </div>
-          <button type="button" onClick={cycleTheme} aria-label={`Theme: ${theme}. Change theme`}>
-            {theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'Auto'}
-          </button>
+          <DisplayMenu />
         </div>
       </header>
       {waking.phase !== 'ok' && (
@@ -63,7 +55,7 @@ export function Layout() {
           )}
         </div>
       )}
-      <main id="report" className="wrap" style={{ paddingTop: 24, paddingBottom: 48 }}>
+      <main id="report" className="wrap" style={{ paddingBottom: 48 }}>
         <Outlet />
       </main>
       <Footer />

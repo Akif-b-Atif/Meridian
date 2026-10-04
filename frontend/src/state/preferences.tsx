@@ -5,6 +5,8 @@ import type { Units } from '../units'
 export type ThemeChoice = 'light' | 'dark' | 'system'
 const UNITS_KEY = 'meridian.units'
 const THEME_KEY = 'meridian.theme'
+const MODE_KEY = 'meridian.mode'
+export type Mode = 'plain' | 'detail'
 
 export function readStored(key: string): string | null {
   try {
@@ -28,6 +30,9 @@ export function initialTheme(): ThemeChoice {
   const v = readStored(THEME_KEY)
   return v === 'light' || v === 'dark' ? v : 'system'
 }
+export function initialMode(): Mode {
+  return readStored(MODE_KEY) === 'detail' ? 'detail' : 'plain'
+}
 export function applyTheme(choice: ThemeChoice) {
   const dark =
     choice === 'dark' ||
@@ -43,12 +48,16 @@ interface Prefs {
   theme: ThemeChoice
   cycleTheme: () => void
   resolvedTheme: 'light' | 'dark'
+  mode: Mode
+  setMode: (m: Mode) => void
+  setThemeChoice: (t: ThemeChoice) => void
 }
 const Ctx = createContext<Prefs | null>(null)
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [units, setUnitsState] = useState<Units>(initialUnits)
   const [theme, setTheme] = useState<ThemeChoice>(initialTheme)
+  const [mode, setModeState] = useState<Mode>(initialMode)
   const [resolved, setResolved] = useState<'light' | 'dark'>(
     () => (document.documentElement.getAttribute('data-theme') as 'light' | 'dark') ?? 'light',
   )
@@ -56,6 +65,15 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const setUnits = useCallback((u: Units) => {
     setUnitsState(u)
     writeStored(UNITS_KEY, u)
+  }, [])
+
+  const setMode = useCallback((m: Mode) => {
+    setModeState(m)
+    writeStored(MODE_KEY, m)
+  }, [])
+  const setThemeChoice = useCallback((t: ThemeChoice) => {
+    setTheme(t)
+    writeStored(THEME_KEY, t === 'system' ? null : t)
   }, [])
 
   useEffect(() => {
@@ -81,8 +99,17 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ units, setUnits, theme, cycleTheme, resolvedTheme: resolved }),
-    [units, setUnits, theme, cycleTheme, resolved],
+    () => ({
+      units,
+      setUnits,
+      theme,
+      cycleTheme,
+      resolvedTheme: resolved,
+      mode,
+      setMode,
+      setThemeChoice,
+    }),
+    [units, setUnits, theme, cycleTheme, resolved, mode, setMode, setThemeChoice],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

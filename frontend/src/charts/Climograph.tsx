@@ -1,26 +1,38 @@
 import { scaleBand, scaleLinear } from 'd3-scale'
 import { line } from 'd3-shape'
+import { useState } from 'react'
 import type { ClimateData } from '../api/types'
 import { DataTable } from '../components/Section'
-import { IDLE_READOUT, MONTH_FULL, MONTH_INITIALS } from '../copy'
 import { useChartFocus } from '../components/useChartFocus'
-import { n0, n1, tempNumber, tempUnit, temp, type Units } from '../units'
+import { IDLE_READOUT, MONTH_FULL, MONTH_INITIALS } from '../copy'
+import { useWidth } from '../lib/hooks'
+import { n0, n1, temp, tempNumber, tempUnit, type Units } from '../units'
 
-const W = 720,
-  H = 360,
-  M = { l: 52, r: 52, t: 16, b: 40 }
-
-export function Climograph({ d, units, label }: { d: ClimateData; units: Units; label: string }) {
+/** Rain as bars (right axis) and temperature as lines (left axis), month by month. */
+export function Climograph({
+  d,
+  units,
+  label,
+  highlight,
+}: {
+  d: ClimateData
+  units: Units
+  label: string
+  highlight: number | null
+}) {
+  const [ref, w] = useWidth<HTMLDivElement>(640)
+  const H = w < 520 ? 300 : 360
+  const M = { l: 46, r: 50, t: 34, b: 34 }
   const m = d.monthly
   const { index, setIndex, onKeyDown } = useChartFocus(12)
+  const [hover, setHover] = useState<number | null>(null)
+  const sel = hover ?? index ?? highlight
   const x = scaleBand<number>()
     .domain([...Array(12).keys()])
-    .range([M.l, W - M.r])
-    .padding(0.3)
-  const tLo = Math.min(0, ...m.tmin),
-    tHi = Math.max(...m.tmax)
+    .range([M.l, w - M.r])
+    .padding(0.25)
   const yT = scaleLinear()
-    .domain([tempNumber(tLo, units), tempNumber(tHi, units)])
+    .domain([tempNumber(Math.min(0, ...m.tmin), units), tempNumber(Math.max(...m.tmax), units)])
     .nice()
     .range([H - M.b, M.t])
   const yP = scaleLinear()
@@ -33,38 +45,50 @@ export function Climograph({ d, units, label }: { d: ClimateData; units: Units; 
     line<number>()
       .x((_, i) => cx(i))
       .y((c) => ty(c))(v) ?? ''
-  const i = index
+  const full = w >= 560
   const readout =
-    i === null
+    index === null && hover === null
       ? IDLE_READOUT
-      : `${MONTH_FULL[i]}: mean ${temp(m.tmean[i], units)} (max ${temp(m.tmax[i], units)}, min ${temp(m.tmin[i], units)}), precipitation ${n0(m.precip[i])} mm, ${n1(m.wetDays[i])} wet days${m.sunHoursPerDay?.[i] != null ? `, ${n1(m.sunHoursPerDay[i] as number)} hours of sunshine a day` : ''}`
-  const tallest = m.precip.indexOf(Math.max(...m.precip))
-
+      : (() => {
+          const i = (hover ?? index) as number
+          return `${MONTH_FULL[i]}: average ${temp(m.tmean[i], units)}, usually between ${temp(m.tmin[i], units)} at night and ${temp(m.tmax[i], units)} by day. ${n0(m.precip[i])} mm of rain over about ${n0(m.wetDays[i])} wet days.`
+        })()
+  const wetMax = m.precip.indexOf(Math.max(...m.precip))
+  const hotMax = m.tmean.indexOf(Math.max(...m.tmean))
   return (
-    <div>
+    <div ref={ref} className="chart-host">
       <svg
-        viewBox={`0 0 ${W} ${H}`}
+        width={w}
+        height={H}
+        viewBox={`0 0 ${w} ${H}`}
         className="chart chart-focus"
         role="group"
         tabIndex={0}
         aria-label={label}
         onKeyDown={onKeyDown}
+        onPointerLeave={() => setHover(null)}
       >
-        <text x={M.l} y={12}>
+        <text x={M.l} y={14} className="strong" style={{ fill: 'var(--series-a)' }}>
           Temperature ({tempUnit(units)})
         </text>
-        <text x={W - M.r} y={12} textAnchor="end">
-          Precipitation (mm)
+        <text
+          x={w - M.r}
+          y={14}
+          textAnchor="end"
+          className="strong"
+          style={{ fill: 'var(--series-b)' }}
+        >
+          Rain (mm)
         </text>
         {yT.ticks(5).map((t) => (
           <g key={t}>
             <line
               x1={M.l}
-              x2={W - M.r}
+              x2={w - M.r}
               y1={yT(t)}
               y2={yT(t)}
               stroke="var(--edge)"
-              strokeOpacity={0.35}
+              strokeOpacity={0.3}
             />
             <text x={M.l - 6} y={yT(t) + 5} textAnchor="end">
               {t}
@@ -72,10 +96,20 @@ export function Climograph({ d, units, label }: { d: ClimateData; units: Units; 
           </g>
         ))}
         {yP.ticks(5).map((t) => (
-          <text key={t} x={W - M.r + 6} y={yP(t) + 5}>
+          <text key={t} x={w - M.r + 6} y={yP(t) + 5}>
             {t}
           </text>
         ))}
+        {sel !== null && (
+          <rect
+            x={(x(sel) ?? 0) - 4}
+            y={M.t}
+            width={x.bandwidth() + 8}
+            height={H - M.b - M.t}
+            fill="var(--accent)"
+            fillOpacity={0.1}
+          />
+        )}
         {m.precip.map((p, k) => (
           <rect
             key={k}
@@ -84,8 +118,7 @@ export function Climograph({ d, units, label }: { d: ClimateData; units: Units; 
             y={yP(p)}
             height={H - M.b - yP(p)}
             fill="var(--series-b)"
-            fillOpacity={k === i ? 0.95 : 0.7}
-            onPointerEnter={() => setIndex(k)}
+            fillOpacity={0.65}
           />
         ))}
         <path
@@ -104,41 +137,46 @@ export function Climograph({ d, units, label }: { d: ClimateData; units: Units; 
         />
         <path d={path(m.tmean)} fill="none" stroke="var(--series-a)" strokeWidth={2.5} />
         {m.tmean.map((c, k) => (
-          <circle key={k} cx={cx(k)} cy={ty(c)} r={3.5} fill="var(--series-a)" />
+          <circle key={k} cx={cx(k)} cy={ty(c)} r={k === sel ? 5.5 : 3.5} fill="var(--series-a)" />
         ))}
         {MONTH_INITIALS.map((l, k) => (
-          <text key={k} x={cx(k)} y={H - 16} textAnchor="middle">
-            {l}
+          <text
+            key={k}
+            x={cx(k)}
+            y={H - 12}
+            textAnchor="middle"
+            className={k === sel ? 'strong' : ''}
+          >
+            {full ? MONTH_FULL[k].slice(0, 3) : l}
           </text>
         ))}
-        <text x={cx(11) + 6} y={ty(m.tmean[11]) - 4} className="ink" style={{ fontSize: 12 }}>
-          Mean
-        </text>
-        <text x={cx(11) + 6} y={ty(m.tmax[11]) - 4} style={{ fontSize: 12 }}>
-          Max
-        </text>
-        <text x={cx(11) + 6} y={ty(m.tmin[11]) + 14} style={{ fontSize: 12 }}>
-          Min
-        </text>
-        <text
-          x={cx(tallest)}
-          y={yP(m.precip[tallest]) - 4}
-          textAnchor="middle"
-          style={{ fontSize: 12 }}
-        >
-          Precipitation
-        </text>
-        {i !== null && (
-          <rect
-            x={x(i)! - 4}
-            y={M.t}
-            width={x.bandwidth() + 8}
-            height={H - M.b - M.t}
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth={1.5}
-          />
+        {full && (
+          <>
+            <text x={cx(hotMax)} y={ty(m.tmax[hotMax]) - 8} textAnchor="middle" className="ink">
+              Warmest: {n1(tempNumber(m.tmean[hotMax], units))}
+            </text>
+            <text
+              x={cx(wetMax)}
+              y={yP(m.precip[wetMax]) - 6}
+              textAnchor="middle"
+              style={{ fill: 'var(--series-b)', fontWeight: 600 }}
+            >
+              Wettest: {n0(m.precip[wetMax])} mm
+            </text>
+          </>
         )}
+        {m.tmean.map((_, k) => (
+          <rect
+            key={k}
+            x={x(k)! - 2}
+            y={M.t}
+            width={x.bandwidth() + 4}
+            height={H - M.b - M.t}
+            fill="transparent"
+            onPointerEnter={() => setHover(k)}
+            onClick={() => setIndex(k)}
+          />
+        ))}
       </svg>
       <p className="readout" aria-live="polite">
         {readout}
@@ -148,9 +186,9 @@ export function Climograph({ d, units, label }: { d: ClimateData; units: Units; 
         head={[
           'Month',
           `Mean ${tempUnit(units)}`,
-          `Max ${tempUnit(units)}`,
-          `Min ${tempUnit(units)}`,
-          'Precip mm',
+          `High ${tempUnit(units)}`,
+          `Low ${tempUnit(units)}`,
+          'Rain mm',
           'Wet days',
         ]}
         rows={MONTH_FULL.map((mn, k) => [
