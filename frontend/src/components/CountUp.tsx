@@ -24,9 +24,16 @@ export function CountUp({ value, format }: { value: number; format: (n: number) 
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [seen, value, canAnimate])
+  // printing should never show a half-finished count
+  useEffect(() => {
+    const show = () => setShown(value)
+    window.addEventListener('beforeprint', show)
+    return () => window.removeEventListener('beforeprint', show)
+  }, [value])
   return (
-    <span ref={ref} aria-label={format(value)}>
+    <span ref={ref}>
       <span aria-hidden="true">{format(shown)}</span>
+      <span className="sr-only">{format(value)}</span>
     </span>
   )
 }

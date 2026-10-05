@@ -34,7 +34,7 @@ export function Layout() {
           <Link to="/" className="brand">
             Meridian
           </Link>
-          <div style={{ flex: 1, maxWidth: 440 }}>
+          <div className="search">
             <SearchBox />
           </div>
           <DisplayMenu />

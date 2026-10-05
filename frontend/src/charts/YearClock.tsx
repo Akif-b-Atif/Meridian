@@ -8,7 +8,7 @@ import { useWidth } from '../lib/hooks'
 import { hm, temp, tempNumber, tempUnit, type Units } from '../units'
 
 const C = 360
-const VB = { x: -100, y: -20, w: 920, h: 760 }
+const VB = { x: 0, y: 0, w: 720, h: 720 }
 const angle = (doy: number) => (2 * Math.PI * (doy - 0.5)) / 365
 const pt = (r: number, a: number): [number, number] => [C + r * Math.sin(a), C - r * Math.cos(a)]
 
@@ -43,7 +43,6 @@ export function YearClock({
   const [hostRef, width] = useWidth<HTMLDivElement>(420)
   const s = VB.w / Math.max(220, width) // viewBox units per pixel, so text stays a real size
   const fs = (px: number) => px * s
-  const showLabels = width >= 380
 
   const ring = useMemo(() => {
     if (!climate) return null
@@ -55,7 +54,7 @@ export function YearClock({
       lo -= short
       hi += short
     }
-    const r = scaleLinear().domain([lo, hi]).range([120, 235])
+    const r = scaleLinear().domain([lo, hi]).range([135, 235])
     const pts = v.map((t, i) => pt(r(t), angle(i + 1))) as [number, number][]
     const step = units === 'metric' ? 10 : 20
     const a = tempNumber(lo, units)
@@ -69,7 +68,7 @@ export function YearClock({
 
   const dayPath = useMemo(() => {
     if (!solar) return null
-    const pts = solar.daylight365.map((h, i) => pt(46 + (46 * h) / 24, angle(i + 1))) as [
+    const pts = solar.daylight365.map((h, i) => pt(70 + (40 * h) / 24, angle(i + 1))) as [
       number,
       number,
     ][]
@@ -129,23 +128,6 @@ export function YearClock({
     }
   }
 
-  const anchor = (a: number) =>
-    Math.sin(a) > 0.3 ? 'start' : Math.sin(a) < -0.3 ? 'end' : 'middle'
-  const callout = (doy: number, r: number, text: string, strong = false) => {
-    const a = angle(doy)
-    const [x, y] = pt(r, a)
-    return (
-      <text
-        x={x}
-        y={y + (Math.cos(a) > 0.5 ? -fs(4) : Math.cos(a) < -0.5 ? fs(16) : fs(5))}
-        textAnchor={anchor(a)}
-        className={strong ? 'strong' : 'ink'}
-        style={{ fontSize: fs(14) }}
-      >
-        {text}
-      </text>
-    )
-  }
   const pointer = ring && tAt !== null ? pt(ring.r(tAt), angle(day)) : null
   const showDay = stage >= 2
   const showLag = stage >= 3
@@ -170,8 +152,8 @@ export function YearClock({
         onPointerMove={(e) => e.buttons === 1 && setFromPointer(e)}
         style={{ touchAction: 'pan-y', fontSize: fs(14) }}
       >
-        <style>{`.clock svg text{font-size:${fs(14)}px}`}</style>
-        <circle cx={C} cy={C} r={46} fill="none" stroke="var(--edge)" />
+        <style>{`.clock svg text{font-size:${fs(14)}px;paint-order:stroke;stroke:var(--ground);stroke-width:${fs(3)}px;stroke-linejoin:round}`}</style>
+        <circle cx={C} cy={C} r={70} fill="none" stroke="var(--edge)" />
         <g className="layer" style={layerStyle(showDay)}>
           {dayPath && (
             <path
@@ -254,14 +236,21 @@ export function YearClock({
               />
               {(() => {
                 const [x, y] = pt(283, angle(cyc.peakDoy))
-                return <circle cx={x} cy={y} r={5 * s} fill="var(--series-a)" />
+                return <circle cx={x} cy={y} r={6 * s} fill="var(--series-a)" />
               })()}
-              {showLabels &&
-                cyc.peakLagDays !== null &&
-                callout(cyc.peakDoy, 306, `Warmest day · ${dateOf(cyc.peakDoy)}`, true)}
-              {showLabels &&
-                cyc.troughDoy &&
-                callout(cyc.troughDoy, 306, `Coldest day · ${dateOf(cyc.troughDoy)}`)}
+              {(() => {
+                const [x, y] = pt(283, angle(cyc.troughDoy))
+                return (
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={5.5 * s}
+                    fill="var(--ground)"
+                    stroke="var(--series-a)"
+                    strokeWidth={2.5 * s}
+                  />
+                )
+              })()}
             </>
           )}
         </g>
@@ -271,15 +260,6 @@ export function YearClock({
           return (
             <g key={d}>
               <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ink)" strokeWidth={1.5 * s} />
-              {showLabels &&
-                showLag &&
-                callout(
-                  d,
-                  320,
-                  d === warmSol
-                    ? `${hemisphere === 'N' ? 'Longest' : 'Longest'} day`
-                    : 'Shortest day',
-                )}
             </g>
           )
         })}
@@ -308,7 +288,7 @@ export function YearClock({
         )}
         {hAt !== null && showDay && (
           <text x={C} y={C + fs(30)} textAnchor="middle" style={{ fontSize: fs(13) }}>
-            {hm(hAt)} of light
+            {Math.floor(hAt)}h {String(Math.round((hAt % 1) * 60)).padStart(2, '0')}m
           </text>
         )}
       </svg>

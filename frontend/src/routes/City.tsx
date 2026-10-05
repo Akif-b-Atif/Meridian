@@ -50,7 +50,6 @@ import {
   doyOfDate,
   founded,
   heatwaveSentence,
-  noQuakes,
   radiusLabel,
   trendSentence,
 } from '../copy'
@@ -338,10 +337,10 @@ export function City() {
                         {rows
                           .filter(([, v]) => v)
                           .map(([k, v]) => (
-                            <span key={k} style={{ display: 'contents' }}>
+                            <div key={k} style={{ display: 'contents' }}>
                               <dt>{k}</dt>
                               <dd>{v}</dd>
-                            </span>
+                            </div>
                           ))}
                       </dl>
                     )}
@@ -848,9 +847,7 @@ export function City() {
                   <div className="stack-lg">
                     <Notes env={env} only={['seismic_partial', 'seismic_truncated']} />
                     <Takeaway>{quakeTakeaway(d, units)}</Takeaway>
-                    {d.n === 0 ? (
-                      <p>{noQuakes(d.radiusKm, d.start, units)}</p>
-                    ) : (
+                    {d.n === 0 ? null : (
                       <>
                         <div className="cols-2">
                           <div className="stack">

@@ -21,11 +21,11 @@ export function Dumbbells({
   label: string
 }) {
   const [ref, w] = useWidth<HTMLDivElement>(640)
-  const narrow = w < 560
-  const rowH = 70
-  const H = pairs.length * rowH + 40
-  const left = 16
-  const right = w - 16
+  const rowH = 104
+  const H = pairs.length * rowH + 8
+  const left = 22
+  const right = w - 22
+  const clampX = (x: number) => Math.min(right - 14, Math.max(left + 14, x))
   return (
     <div ref={ref} className="chart-host">
       <div className="legend">
@@ -59,21 +59,22 @@ export function Dumbbells({
       >
         {pairs.map((p, i) => {
           const max = Math.max(p.earlier, p.later, 1) * 1.25
-          const x = scaleLinear()
-            .domain([0, max])
-            .range([left, right - (narrow ? 0 : 150)])
-          const top = i * rowH + 8
-          const cy = top + 40
+          const x = scaleLinear().domain([0, max]).range([left, right])
+          const top = i * rowH
+          const cy = top + 66
           const a = x(p.earlier)
           const b = x(p.later)
           return (
             <g key={p.label}>
-              <text x={left} y={top + 14} className="strong lg">
+              <text x={0} y={top + 18} className="strong lg">
                 {p.label}
+              </text>
+              <text x={0} y={top + 38}>
+                {p.unit}: {pairSentence(p)}
               </text>
               <line
                 x1={left}
-                x2={right - (narrow ? 0 : 150)}
+                x2={right}
                 y1={cy}
                 y2={cy}
                 stroke="var(--edge)"
@@ -89,22 +90,12 @@ export function Dumbbells({
                 strokeWidth={2.5}
               />
               <circle cx={b} cy={cy} r={9} fill="var(--series-a)" />
-              <text x={a} y={cy - 14} textAnchor={b >= a ? 'end' : 'start'} className="ink">
-                {n1(p.earlier)}
-              </text>
-              <text x={b} y={cy - 14} textAnchor={b >= a ? 'start' : 'end'} className="strong">
+              <text x={clampX(b)} y={cy - 16} textAnchor="middle" className="strong">
                 {n1(p.later)}
               </text>
-              {!narrow && (
-                <text x={right} y={cy + 5} textAnchor="end" className="ink">
-                  {pairSentence(p)}
-                </text>
-              )}
-              {narrow && (
-                <text x={left} y={cy + 28}>
-                  {p.unit}: {pairSentence(p)}
-                </text>
-              )}
+              <text x={clampX(a)} y={cy + 28} textAnchor="middle" className="ink">
+                {n1(p.earlier)}
+              </text>
             </g>
           )
         })}

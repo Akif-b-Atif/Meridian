@@ -18,6 +18,48 @@ interface Props {
 
 /** Scrollytelling: the dial stays in view while the text beside it walks through what each ring
  *  means. The step in view decides which layers of the dial are shown. */
+function KeyRow({ mark, children }: { mark: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <li style={{ display: 'flex', alignItems: 'center', gap: 10, listStyle: 'none' }}>
+      <svg width="26" height="18" aria-hidden="true">
+        {mark}
+      </svg>
+      <span>{children}</span>
+    </li>
+  )
+}
+
+/** What the marks on the dial mean, as text, so nothing on the dial needs a label of its own. */
+function ClockKey({ cyc, hemisphere }: { cyc: ClimateData['cycle']; hemisphere: 'N' | 'S' }) {
+  const warmSol = hemisphere === 'N' ? 172 : 355
+  const coldSol = hemisphere === 'N' ? 355 : 172
+  if (cyc.mode !== 'ok' || cyc.peakDoy === null || cyc.troughDoy === null) return null
+  return (
+    <ul
+      className="note"
+      style={{ padding: 0, margin: 0, display: 'grid', gap: 6 }}
+      aria-label="Key to the dial"
+    >
+      <KeyRow mark={<line x1="13" x2="13" y1="2" y2="16" stroke="var(--ink)" strokeWidth="2" />}>
+        Solstice ticks: longest day {dateOf(warmSol)}, shortest {dateOf(coldSol)}
+      </KeyRow>
+      <KeyRow mark={<circle cx="13" cy="9" r="6" fill="var(--series-a)" />}>
+        Warmest day, {dateOf(cyc.peakDoy)}
+      </KeyRow>
+      <KeyRow
+        mark={
+          <circle cx="13" cy="9" r="5" fill="none" stroke="var(--series-a)" strokeWidth="2.5" />
+        }
+      >
+        Coldest day, {dateOf(cyc.troughDoy)}
+      </KeyRow>
+      <KeyRow mark={<line x1="2" x2="24" y1="9" y2="9" stroke="var(--accent)" strokeWidth="4" />}>
+        Blue arc: the gap between a solstice and its hottest or coldest day
+      </KeyRow>
+    </ul>
+  )
+}
+
 export function YearStory({
   climate,
   solar,
@@ -129,6 +171,7 @@ export function YearStory({
                   <Term id="solstice">solstice</Term>, but land and sea keep soaking up heat for
                   weeks afterwards, so the warmest day trails behind it.
                 </p>
+                <ClockKey cyc={cyc} hemisphere={hemisphere} />
                 {cyc.lagCheck === 'disagree' && <p className="note">{LAG_DISAGREE}</p>}
               </>
             ) : (

@@ -20,10 +20,10 @@ These run in CI on every push and none of them calls a real provider.
 
 ## Visual review still to do
 
-The layout, the scroll-driven dial, the radar and the globe fly-in have been exercised in jsdom
-and by the Playwright suite but have not been looked at by a person in a browser. Before launch,
-check by eye: chapter spacing at 360, 768 and 1280 px; the sticky dial on a phone while scrolling the
-year chapter; the radar time-lapse; the map's globe-to-city flight; and both themes.
+The Playwright suite (26 tests, including axe in both themes) passes against a real Chromium, and
+I looked at screenshots of the year dial, radar, dumbbells and chapter rail at 1280 and 390 px.
+Not yet checked by eye: tablet widths, the dark theme's charts, the radar's playback motion, and
+the map itself (tile loading and the globe-to-city flight need real internet access).
 
 ## Live checks still to run
 

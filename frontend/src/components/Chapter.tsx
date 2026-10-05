@@ -34,6 +34,7 @@ export function Chapter({ id, num, title, question, stats, children }: ChapterPr
         <dl className="stats">
           {stats.map((s) => (
             <div className="stat" key={s.label}>
+              <dt className="l">{s.label}</dt>
               <dd className="v" style={{ margin: 0 }}>
                 {typeof s.value === 'number' ? (
                   <CountUp value={s.value} format={s.format ?? ((n) => String(Math.round(n)))} />
@@ -41,7 +42,6 @@ export function Chapter({ id, num, title, question, stats, children }: ChapterPr
                   s.value
                 )}
               </dd>
-              <dt className="l">{s.label}</dt>
             </div>
           ))}
         </dl>

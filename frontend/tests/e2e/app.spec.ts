@@ -33,7 +33,7 @@ test.describe('landing and search', () => {
 })
 
 test.describe('city report', () => {
-  test('loads all eleven sections and corrects the slug', async ({ page }) => {
+  test('loads all ten chapters and corrects the slug', async ({ page }) => {
     await mockApi(page)
     await page.goto('/city/2643743/wrong-slug')
     await expect(page.getByRole('heading', { name: 'London', level: 1 })).toBeVisible()
@@ -112,28 +112,34 @@ test.describe('city report', () => {
 
   test('radius switch updates the URL and requests only seismic', async ({ page }) => {
     await mockApi(page)
-    const requests: string[] = []
-    page.on('request', (r) => requests.push(r.url()))
     await page.goto('/city/2643743/london')
     await expect(page.getByRole('heading', { name: 'Earthquakes', level: 2 })).toBeVisible()
+    await expect(page.getByText(/Typical weather|Climate type/).first()).toBeVisible()
     await page.waitForLoadState('networkidle')
-    requests.length = 0
+    const requests: string[] = []
+    page.on('request', (r) => {
+      if (r.url().startsWith('http://api.test/')) requests.push(r.url())
+    })
+    const seismic500 = page.waitForRequest((r) => r.url().includes('/seismic?radius=500'))
     await page.getByRole('radio', { name: /500 km/ }).click()
+    await seismic500
     await expect(page).toHaveURL(/r=500/)
-    await page.waitForLoadState('networkidle')
-    const api = requests.filter((u) => u.startsWith('http://api.test/'))
-    expect(api.length).toBe(1)
-    expect(api[0]).toContain('/seismic?radius=500')
+    // give any stray request a moment to appear, then check nothing else was fetched
+    await page.waitForTimeout(800)
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toContain('/seismic?radius=500')
   })
 
   test('unit switch changes displayed values and persists', async ({ page }) => {
     await mockApi(page)
     await page.goto('/city/2643743/london')
-    await expect(page.getByText('72 km').first()).toBeVisible()
-    await page.getByRole('button', { name: '°F mi' }).click()
-    await expect(page.getByText('45 mi').first()).toBeVisible()
+    await expect(page.getByText(/72\s*km/).first()).toBeVisible()
+    await page.getByRole('button', { name: 'Display' }).click()
+    await page.getByRole('button', { name: '°F, mi' }).click()
+    await expect(page.getByText(/45\s*mi/).first()).toBeVisible()
     await page.reload()
-    await expect(page.getByRole('button', { name: '°F mi' })).toHaveAttribute(
+    await page.getByRole('button', { name: 'Display' }).click()
+    await expect(page.getByRole('button', { name: '°F, mi' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )

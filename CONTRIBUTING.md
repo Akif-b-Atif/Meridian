@@ -38,3 +38,22 @@ npm test
 - **Design rules are binding** (see [docs/DESIGN.md](docs/DESIGN.md)): no gradients, no pill
   shapes, radius at most 4 px, no decorative motion, contrast checked in both themes.
 - Never commit secrets, and never call a real provider from a test.
+
+## Protecting `main`
+
+GitHub shows a "main isn't protected" banner until a branch rule exists. The rule I use is saved in
+[`.github/rulesets/protect-main.json`](.github/rulesets/protect-main.json): it blocks force pushes
+and deletion of `main` and requires the four CI jobs (`backend`, `contract`, `frontend`, `docker`)
+to pass. Repository admins can still push directly. To apply it: **Settings, Rules, Rulesets,
+New ruleset, Import a ruleset**, then choose that file. The status checks only appear in the
+picker after CI has run once on the repository.
+
+## Running the browser tests where Chromium cannot be downloaded
+
+`npx playwright install chromium` is the normal route. If your network blocks that download, point
+the suite at any Chromium you already have:
+
+```
+set PW_CHROMIUM_PATH=C:\path\to\chrome.exe
+npm run e2e
+```

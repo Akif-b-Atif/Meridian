@@ -46,7 +46,7 @@ export function SeismicRadar({ d, lat, lon, units, label, theme }: RadarProps) {
   const [hostRef, hostW] = useWidth<HTMLDivElement>(560)
   const size = Math.max(260, Math.min(hostW, 560))
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const t0 = d.points.t.length ? Math.min(...d.points.t) : Number(d.start.slice(0, 4))
+  const t0 = Number(d.start.slice(0, 4))
   const t1 = Number(d.end.slice(0, 4)) + 1
   const [year, setYear] = useState(t1)
   const [playing, setPlaying] = useState(false)
@@ -241,7 +241,7 @@ export function SeismicRadar({ d, lat, lon, units, label, theme }: RadarProps) {
         <strong>
           {year >= t1 ? `${Math.floor(t0)} to now` : `${Math.floor(t0)} to ${Math.floor(year)}`}:
         </strong>{' '}
-        {n0(shown)} earthquakes
+        {n0(shown)} {shown === 1 ? 'earthquake' : 'earthquakes'}
         {strongest
           ? `, strongest so far magnitude ${n1(strongest.mag)} (${compass((strongest.bearing * 180) / Math.PI)} of the city, ${dist(strongest.km, units)} away)`
           : ''}
